@@ -14,7 +14,7 @@ time.sleep(1)
 
 print("Testing phasing through")
 
-action = np.array([Actions.UP.value, Actions.DOWN.value, Actions.WAIT.value])
+action = np.array([Actions.UP, Actions.DOWN, Actions.WAIT])
 
 pos, _, _, _ = env.step(action)
 
@@ -22,7 +22,7 @@ assert np.all(startpos==pos)
 
 time.sleep(1)
 
-action = np.array([Actions.RIGHT.value, Actions.WAIT.value, Actions.LEFT.value])
+action = np.array([Actions.RIGHT, Actions.WAIT, Actions.LEFT])
 
 pos, _, _, _ = env.step(action)
 
@@ -32,7 +32,7 @@ time.sleep(1)
 
 print("Testing wait and move into")
 
-action = np.array([Actions.UP.value, Actions.WAIT.value, Actions.WAIT.value])
+action = np.array([Actions.UP, Actions.WAIT, Actions.WAIT])
 
 pos, _, _, _ = env.step(action)
 
@@ -40,7 +40,7 @@ assert np.all(startpos==pos)
 
 time.sleep(1)
 
-action = np.array([Actions.WAIT.value, Actions.DOWN.value, Actions.LEFT.value])
+action = np.array([Actions.WAIT, Actions.DOWN, Actions.LEFT])
 
 pos, _, _, _ = env.step(action)
 
@@ -50,7 +50,7 @@ time.sleep(1)
 
 print("Testing move into same spot")
 
-action = np.array([Actions.WAIT.value, Actions.RIGHT.value, Actions.UP.value])
+action = np.array([Actions.WAIT, Actions.RIGHT, Actions.UP])
 
 pos, _, _, _ = env.step(action)
 
@@ -60,7 +60,7 @@ time.sleep(1)
 
 print("Testing collision due to failed movement")
 
-action = np.array([Actions.UP.value, Actions.WAIT.value, Actions.LEFT.value])
+action = np.array([Actions.UP, Actions.WAIT, Actions.LEFT])
 
 pos, _, _, _ = env.step(action)
 
@@ -70,7 +70,7 @@ time.sleep(1)
 
 print("Testing move in unison")
 
-action = np.array([Actions.RIGHT.value, Actions.DOWN.value, Actions.RIGHT.value])
+action = np.array([Actions.RIGHT, Actions.DOWN, Actions.RIGHT])
 
 pos, _, _, _ = env.step(action)
 
