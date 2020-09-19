@@ -1,22 +1,28 @@
 import gym
 import numpy as np
 from enum import IntEnum
+import types
 from gridgym.Visualiser import *
 
 class GridEnv(gym.Env):
 
 	def __init__(self, grid, **kwargs):
 		# Constants
-		self.grid = grid
+		self.grid_fn = None; self.grid = None
+		if isinstance(grid, types.FunctionType):
+			self.grid_fn = grid
+		else:
+			self.grid = grid
 		self.state_fn = lambda env: env.positions
 		self.reward_fn = lambda env: 0.0
 		self.done_fn = lambda env: False
 		self.info_fn = lambda env: {}
 		self.N_AGENTS = 1
+		self.COMM_RANGE = float('inf')
 		self.HEADLESS = False
 		self.set_constants(kwargs)
 		# Variables
-		self.positions = None; self.random_reset()
+		self.positions = None
 		self.collisions = np.zeros(self.N_AGENTS)
 		self.goals = {}
 		self.steps_since_reset = 0
@@ -24,6 +30,7 @@ class GridEnv(gym.Env):
 		self.obs = None
 		if not self.HEADLESS:
 			self.visualiser = Visualiser(grid.shape)
+		self.random_reset()
 
 
 	def set_constants(self, kwargs):
@@ -33,6 +40,8 @@ class GridEnv(gym.Env):
 
 
 	def random_reset(self):
+		if self.grid_fn is not None:
+			self.grid = self.grid_fn()
 		pos = self.get_valid_positions()
 		self.positions = pos
 		self.steps_since_reset = 0
@@ -49,7 +58,9 @@ class GridEnv(gym.Env):
 		return pos
 
 	# pos: Nx2 array where the kth row is the (i,j) coordinate of agent k
-	def reset(self, pos):
+	def reset(self, pos, grid=None):
+		if grid is not None:
+			self.grid = grid
 		if not np.any(self.check_collisions(pos)):
 			self.positions = pos
 			self.steps_since_reset = 0
@@ -57,6 +68,22 @@ class GridEnv(gym.Env):
 
 	def set_goals(self, goals):
 		self.goals = goals
+
+
+	def get_A(self):
+		if self.COMM_RANGE == float('inf'):
+			return np.ones((self.N_AGENTS, self.N_AGENTS)) - np.eye(self.N_AGENTS)
+		posi = self.positions.unsqueeze(1).expand(-1,self.N_AGENTS,-1)
+		posj = self.positions.unsqueeze(0).expand(self.N_AGENTS,-1,-1)
+		copos = posi-posj
+		codist = copos.norm(dim=2)
+		codist.diagonal().fill_(float('inf'))
+		A = (codist <= self.COMM_RANGE).float()
+		return A
+
+
+	def get_X(self):
+		return self.state_fn(self)
 
 
 	def check_collisions(self, pos, old_pos=None):

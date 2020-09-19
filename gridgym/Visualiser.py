@@ -31,7 +31,7 @@ colour_order = [Colour.Red, Colour.Blue, Colour.Green, Colour.Cyan, Colour.Yello
 class Visualiser:
 
 	def __init__(self, shape):
-		self.HEIGHT = 600
+		self.HEIGHT = 800
 		self.GAP_SIZE = 1
 		self.shape = shape
 		self.setup()
