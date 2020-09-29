@@ -30,14 +30,13 @@ colour_order = [Colour.Red, Colour.Blue, Colour.Green, Colour.Cyan, Colour.Yello
 
 class Visualiser:
 
-	def __init__(self, shape):
+	def __init__(self):
 		self.HEIGHT = 800
 		self.GAP_SIZE = 1
-		self.shape = shape
-		self.setup()
-		self.init_grid()
+		self.initialised = False
 
-	def setup(self):
+	def setup(self, shape):
+		self.shape = shape
 		pygame.init()
 		self.WIDTH = self.HEIGHT * int(self.shape[0] / self.shape[1])
 		self.BLOCK_HEIGHT = int((self.HEIGHT - ((self.shape[1]+1) * self.GAP_SIZE)) / self.shape[1])
@@ -87,6 +86,10 @@ class Visualiser:
 
 
 	def render(self, grid, positions, goals=None):
+		if not self.initialised:
+			self.setup(grid.shape)
+			self.init_grid()
+			self.initialised = True
 		self.clear()
 		self.draw_obstacles(grid)
 		self.draw_goals(goals)

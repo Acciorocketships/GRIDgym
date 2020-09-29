@@ -2,7 +2,6 @@ import gym
 import numpy as np
 from enum import IntEnum
 import types
-from gridgym.Visualiser import *
 
 class GridEnv(gym.Env):
 
@@ -28,9 +27,10 @@ class GridEnv(gym.Env):
 		self.steps_since_reset = 0
 		self.movement = None
 		self.obs = None
-		if not self.HEADLESS:
-			self.visualiser = Visualiser(grid.shape)
 		self.random_reset()
+		if not self.HEADLESS:
+			from gridgym.Visualiser import Visualiser
+			self.visualiser = Visualiser()
 
 
 	def set_constants(self, kwargs):
@@ -56,6 +56,28 @@ class GridEnv(gym.Env):
 		pos_j = valid_j[idxs]
 		pos = np.stack((pos_i, pos_j), axis=1)
 		return pos
+
+
+	def get_local_map(self, agent, size=2):
+		pos = self.positions[agent,:]
+		localmap = np.zeros((2*size+1, 2*size+1, 3))
+		# obstacles
+		padded_grid = np.ones((self.grid.shape[0]+2*size, self.grid.shape[1]+2*size))
+		padded_grid[size:-size,size:-size] = self.grid
+		localmap[:,:,0] = padded_grid[size+pos[0]-size:size+pos[0]+size+1, size+pos[1]-size:size+pos[1]+size+1]
+		# agents
+		local_positions = self.positions - pos[None,:] + size
+		for agent_idx, agent_pos in enumerate(local_positions):
+			if np.all(agent_pos >= 0) and np.all(agent_pos <= size*2) and agent_idx != agent:
+				localmap[agent_pos[0], agent_pos[1], 1] = True
+		# goal
+		local_goal = self.goals[agent,:] - pos
+		scale = max(abs(local_goal))
+		local_goal = np.round(local_goal * (size / max(size, scale))).astype(int)
+		localmap[local_goal[0]+size, local_goal[1]+size, 2] = True
+		# 3 channel map
+		return localmap
+
 
 	# pos: Nx2 array where the kth row is the (i,j) coordinate of agent k
 	def reset(self, pos, grid=None):
@@ -158,6 +180,15 @@ class Actions(IntEnum):
 	RIGHT = 2
 	DOWN = 3
 	LEFT = 4
+
+
+action_categorical = {
+	(0,0) : Actions.WAIT,
+	(0,1) : Actions.UP,
+	(0,-1): Actions.DOWN,
+	(1,0) : Actions.RIGHT,
+	(-1,0): Actions.LEFT
+}
 
 
 def grid_creator(size, fill=0.1):
