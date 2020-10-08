@@ -95,12 +95,12 @@ class GridEnv(gym.Env):
 	def get_A(self):
 		if self.COMM_RANGE == float('inf'):
 			return np.ones((self.N_AGENTS, self.N_AGENTS)) - np.eye(self.N_AGENTS)
-		posi = self.positions.unsqueeze(1).expand(-1,self.N_AGENTS,-1)
-		posj = self.positions.unsqueeze(0).expand(self.N_AGENTS,-1,-1)
+		posi = np.tile(np.expand_dims(self.positions, axis=1), (1,self.N_AGENTS,1))
+		posj = np.tile(np.expand_dims(self.positions, axis=0), (self.N_AGENTS,1,1))
 		copos = posi-posj
-		codist = copos.norm(dim=2)
-		codist.diagonal().fill_(float('inf'))
-		A = (codist <= self.COMM_RANGE).float()
+		codist = np.sum(np.abs(copos), axis=2).astype('float')
+		np.fill_diagonal(codist, float('inf'))
+		A = (codist <= self.COMM_RANGE).astype('float')
 		return A
 
 
