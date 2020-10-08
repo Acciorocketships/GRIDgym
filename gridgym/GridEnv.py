@@ -108,6 +108,10 @@ class GridEnv(gym.Env):
 		return self.state_fn(self)
 
 
+	def get_context(self):
+		return self.info_fn(self)
+
+
 	def check_collisions(self, pos, old_pos=None):
 		collisions = np.zeros(pos.shape[0]).astype(bool)
 		# Check that agents don't occupy the same space
