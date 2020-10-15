@@ -42,8 +42,8 @@ class GridEnv(gym.Env):
 	def random_reset(self):
 		if self.grid_fn is not None:
 			self.grid = self.grid_fn()
-		pos = self.get_valid_positions()
-		self.positions = pos
+		self.positions = self.get_valid_positions()
+		self.goals = self.get_valid_positions()
 		self.steps_since_reset = 0
 
 
@@ -80,16 +80,20 @@ class GridEnv(gym.Env):
 
 
 	# pos: Nx2 array where the kth row is the (i,j) coordinate of agent k
-	def reset(self, pos, grid=None):
+	def reset(self, starts=None, goals=None, grid=None):
+		self.steps_since_reset = 0
 		if grid is not None:
 			self.grid = grid
-		if not np.any(self.check_collisions(pos)):
-			self.positions = pos
-			self.steps_since_reset = 0
-
-
-	def set_goals(self, goals):
-		self.goals = goals
+		if starts is not None:
+			if not np.any(self.check_collisions(starts)):
+				self.positions = starts
+			else:
+				print("Set Invalid Start")
+		if goals is not None:
+			if not np.any(self.check_collisions(goals)):
+				self.goals = goals
+			else:
+				print("Set Invalid Goal")
 
 
 	def get_A(self):
